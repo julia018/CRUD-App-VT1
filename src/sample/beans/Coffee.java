@@ -1,0 +1,45 @@
+package sample.beans;
+
+import java.io.Serializable;
+
+public class Coffee implements Serializable {
+
+    private Trademark trademark;
+    private Milk milk;
+    private Sugar sugar;
+
+    enum Trademark {
+        NESKAFE,
+        JACOBS,
+        LAVAZZA
+    }
+
+    public Coffee() {
+    }
+
+    public Trademark getTrademark() {
+        return trademark;
+    }
+
+    public void setTrademark(Trademark trademark) {
+        this.trademark = trademark;
+    }
+
+    public Milk getMilk() {
+        return milk;
+    }
+
+    public void setMilk(Milk milk) {
+        this.milk = milk;
+    }
+
+    public Sugar getSugar() {
+        return sugar;
+    }
+
+    public void setSugar(Sugar sugar) {
+        this.sugar = sugar;
+    }
+
+
+}
