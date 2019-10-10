@@ -2,7 +2,7 @@ package sample.beans;
 
 import java.io.Serializable;
 
-public class Milk implements Serializable {
+public class Milk implements Serializable, Composition {
 
     private Origin origin;
 

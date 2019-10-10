@@ -2,7 +2,7 @@ package sample.beans;
 
 import java.io.Serializable;
 
-public class Sugar implements Serializable {
+public class Sugar implements Serializable, Composition {
 
     private Kind kind;
     private int spoonCount;

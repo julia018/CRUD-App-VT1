@@ -2,7 +2,7 @@ package sample.beans;
 
 import java.io.Serializable;
 
-public class Tea implements Serializable {
+public class Tea extends Drink implements Serializable {
 
     private ColorKind colorKind;
     private LeafKind leafKind;

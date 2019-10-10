@@ -2,7 +2,7 @@ package sample.beans;
 
 import java.io.Serializable;
 
-public class Water implements Serializable {
+public class Water extends Drink implements Serializable {
 
     private TradeMark tradeMark;
     private Type type;

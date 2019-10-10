@@ -2,7 +2,7 @@ package sample.beans;
 
 import java.io.Serializable;
 
-public class HotChocolate implements Serializable {
+public class HotChocolate extends Drink implements Serializable {
 
     private CocoaPercentage cocoaPercentage;
 

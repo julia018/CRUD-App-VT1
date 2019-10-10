@@ -2,7 +2,7 @@ package sample.beans;
 
 import java.io.Serializable;
 
-public class Drink implements Serializable {
+public abstract class Drink implements Serializable {
 
     private Volume volume;
     private Container container;
