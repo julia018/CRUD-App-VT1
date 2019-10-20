@@ -14,8 +14,8 @@ public class Sugar implements Serializable, Composition {
         return kind;
     }
 
-    public void setKind(Kind kind) {
-        this.kind = kind;
+    public void setKind(String kind) {
+        this.kind = Kind.valueOf(kind);
     }
 
     public int getSpoonCount() {

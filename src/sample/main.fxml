@@ -26,11 +26,11 @@
         <Button fx:id="chooseButton" layoutX="395.0" layoutY="99.0" mnemonicParsing="false" onAction="#makeOrder"
                 text="Choose"/>
         <Label layoutX="259.0" layoutY="161.0" text="Previous orders"/>
-        <TableView layoutX="24.0" layoutY="188.0" prefHeight="278.0" prefWidth="552.0">
+        <TableView fx:id="orderTableView" layoutX="24.0" layoutY="188.0" prefHeight="278.0" prefWidth="552.0">
             <columns>
-                <TableColumn prefWidth="164.0" text="Order date"/>
-                <TableColumn prefWidth="185.0" text="Drink"/>
-                <TableColumn prefWidth="218.0" text="..."/>
+                <TableColumn fx:id="dateColumn" prefWidth="164.0" text="Order date"/>
+                <TableColumn fx:id="drinkColumn" prefWidth="185.0" text="Drink"/>
+                <TableColumn fx:id="actionColumn" prefWidth="201.0" text="..."/>
             </columns>
         </TableView>
     </children>

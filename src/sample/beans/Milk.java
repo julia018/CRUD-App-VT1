@@ -13,8 +13,8 @@ public class Milk implements Serializable, Composition {
         return origin;
     }
 
-    public void setOrigin(Origin origin) {
-        this.origin = origin;
+    public void setOrigin(String origin) {
+        this.origin = Origin.valueOf(origin);
     }
 
     enum Origin {

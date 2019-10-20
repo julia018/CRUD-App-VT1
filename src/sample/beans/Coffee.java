@@ -21,8 +21,8 @@ public class Coffee extends Drink implements Serializable {
         return trademark;
     }
 
-    public void setTrademark(Trademark trademark) {
-        this.trademark = trademark;
+    public void setTrademark(String trademark) {
+        this.trademark = Trademark.valueOf(trademark);
     }
 
     public Milk getMilk() {

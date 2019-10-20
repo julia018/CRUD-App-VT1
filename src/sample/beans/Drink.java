@@ -25,17 +25,16 @@ public abstract class Drink implements Serializable {
         return volume;
     }
 
-    public void setVolume(Volume volume) {
-        this.volume = volume;
+    public void setVolume(String volume) {
+        this.volume = Volume.valueOf(volume);
     }
 
     public Container getContainer() {
         return container;
     }
 
-    public void setContainer(Container container) {
-        this.container = container;
+    public void setContainer(String container) {
+        this.container = Container.valueOf(container);
     }
-
 
 }

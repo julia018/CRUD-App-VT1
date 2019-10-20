@@ -1,6 +1,9 @@
 package sample.logic;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -13,20 +16,27 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import sample.beans.Composition;
+import sample.beans.Drink;
+import sample.beans.Order;
 import sample.controls.IControl;
 import sample.controls.NewChoiceBox;
 import sample.controls.NewLabel;
 import sample.controls.NewTextField;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+
+import static sample.Main.orderList;
 
 public class DataHandler {
 
@@ -115,6 +125,18 @@ public class DataHandler {
             hb.getChildren().add(OKButton);
             vb.getChildren().add(hb);
             stage.setScene(new Scene(vb, WIDTH, HEIGHT));
+
+            if (object == null) { //create
+                OKButton.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent e) {
+                        createOrder(drinkClass, controlsList);
+                        stage.close();
+                    }
+                });
+            } else { //edit
+
+            }
 
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -217,5 +239,64 @@ public class DataHandler {
         NewChoiceBox chBox = new NewChoiceBox(FXCollections.observableArrayList(enumConstants), controlName, objectValue, enumFields);
         controlList.add(chBox);
         vbox.getChildren().add(chBox);
+    }
+
+    private static void createOrder(Class<? extends Drink> drinkClass, List<IControl> controlsList) {
+        Drink drinkInstance = null;
+        try {
+            Constructor constructor = drinkClass.getConstructor();
+            drinkInstance = (Drink) constructor.newInstance();
+            ArrayList<Method> methodList = new ArrayList<>();
+            Class testClass = drinkClass;
+            while (testClass != null && testClass != Object.class) {
+                Collections.addAll(methodList, testClass.getDeclaredMethods());
+                testClass = testClass.getSuperclass();
+            }
+
+            for (IControl control : controlsList) {
+                if (control.getClass().equals(NewLabel.class)) { // composition
+                    //Class innerObjectClass = ((NewLabel) control).getObject().getClass();
+                    Class innerObjectClass = Class.forName(BEANSPACKAGE + capitalizeFirstLetter(control.getName()));
+                    Constructor innerConstructor = innerObjectClass.getConstructor();
+                    Object innerInstance = innerConstructor.newInstance();
+                    ArrayList<Method> innerObjectMethodsList = new ArrayList<>();
+                    Collections.addAll(innerObjectMethodsList, innerObjectClass.getDeclaredMethods());
+                    for (Method method : innerObjectMethodsList) {
+                        for (IControl control1 : controlsList) {
+                            if (method.getName().equals("set" + capitalizeFirstLetter(control1.getName()))) {
+                                method.invoke(innerInstance, control1.getControlValue());
+                            }
+                        }
+                    }
+                    ((NewLabel) control).setObject(innerInstance);
+                }
+                for (Method method : methodList) {
+                    if (method.getName().equals("set" + capitalizeFirstLetter(control.getName()))) {
+                        method.invoke(drinkInstance, control.getControlValue());
+                    }
+                }
+            }
+
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException | ClassNotFoundException l) {
+            System.out.println("Reflection exception!");
+        }
+        Order newOrder = new Order(getCurrentDate(), drinkInstance);
+        addOrderToList(orderList, new OrderModel(newOrder));
+    }
+
+    private static void addOrderToList(ObservableList<OrderModel> orderList, OrderModel order) {
+        orderList.add(order);
+    }
+
+    private static Date getCurrentDate() {
+        return new Date();
+
+    }
+
+    private static String capitalizeFirstLetter(String original) {
+        if (original == null || original.length() == 0) {
+            return original;
+        }
+        return original.substring(0, 1).toUpperCase() + original.substring(1);
     }
 }
