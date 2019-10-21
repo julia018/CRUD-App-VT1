@@ -1,26 +1,28 @@
 package sample.beans;
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 public class Order implements Serializable {
 
-    private Date date;
+    private LocalDateTime date;
     private Drink drink;
 
     public Order() {
 
     }
 
-    public Order(Date date, Drink drink) {
+    public Order(LocalDateTime date, Drink drink) {
         this.date = date;
         this.drink = drink;
     }
 
-    public Date getDate() {
+    public LocalDateTime getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDateTime date) {
         this.date = date;
     }
 
@@ -37,5 +39,9 @@ public class Order implements Serializable {
         CARD
     }
 
+    public void deleteObject() {
+        drink.nullifyInnerObjects();
+        drink = null;
+    }
 
 }

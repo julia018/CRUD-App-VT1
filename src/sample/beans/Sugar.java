@@ -10,8 +10,8 @@ public class Sugar implements Serializable, Composition {
     public Sugar() {
     }
 
-    public Kind getKind() {
-        return kind;
+    public String getKind() {
+        return kind.toString();
     }
 
     public void setKind(String kind) {
@@ -22,8 +22,8 @@ public class Sugar implements Serializable, Composition {
         return spoonCount;
     }
 
-    public void setSpoonCount(int spoonCount) {
-        this.spoonCount = spoonCount;
+    public void setSpoonCount(String spoonCount) {
+        this.spoonCount = Integer.parseInt(spoonCount);
     }
 
     enum Kind {
@@ -31,7 +31,5 @@ public class Sugar implements Serializable, Composition {
         REED,
         MAPLE
     }
-
-
 
 }

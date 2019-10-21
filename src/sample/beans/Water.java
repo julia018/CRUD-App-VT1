@@ -10,20 +10,20 @@ public class Water extends Drink implements Serializable {
     public Water() {
     }
 
-    public TradeMark getTradeMark() {
-        return tradeMark;
+    public String getTradeMark() {
+        return tradeMark.toString();
     }
 
-    public void setTradeMark(TradeMark tradeMark) {
-        this.tradeMark = tradeMark;
+    public void setTradeMark(String tradeMark) {
+        this.tradeMark = TradeMark.valueOf(tradeMark);
     }
 
-    public Type getType() {
-        return type;
+    public String getType() {
+        return type.toString();
     }
 
-    public void setType(Type type) {
-        this.type = type;
+    public void setType(String type) {
+        this.type = Type.valueOf(type);
     }
 
     enum TradeMark {

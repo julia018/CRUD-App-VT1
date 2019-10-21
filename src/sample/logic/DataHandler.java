@@ -1,6 +1,7 @@
 package sample.logic;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableArray;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -30,6 +31,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +43,7 @@ import static sample.Main.orderList;
 public class DataHandler {
 
     private static final int WIDTH = 400;
-    private static final int HEIGHT = 700;
+    private static final int HEIGHT = 500;
     private static final int TOP = 10;
     private static final int RIGHT = 10;
     private static final int BOTTOM = 10;
@@ -113,29 +115,35 @@ public class DataHandler {
 
 
             stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setTitle("Order");
+            stage.setTitle("ORDER -> " + className);
             stage.sizeToScene();
 
             List<IControl> controlsList = new ArrayList<>();
             generateControls(vb, controlsList, classFields, object);
-
             Button OKButton = new Button("Accept!");
             HBox hb = new HBox();
             hb.setAlignment(Pos.CENTER);
             hb.getChildren().add(OKButton);
             vb.getChildren().add(hb);
-            stage.setScene(new Scene(vb, WIDTH, HEIGHT));
+            int height = controlsList.size() * 70;
+            stage.setScene(new Scene(vb, WIDTH, height));
 
             if (object == null) { //create
                 OKButton.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent e) {
-                        createOrder(drinkClass, controlsList);
+                        createOrder(drinkClass, controlsList, null);
                         stage.close();
                     }
                 });
             } else { //edit
-
+                OKButton.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent e) {
+                        createOrder(drinkClass, controlsList, object);
+                        stage.close();
+                    }
+                });
             }
 
         } catch (ClassNotFoundException e) {
@@ -183,8 +191,7 @@ public class DataHandler {
                 Object innerObject = null;
                 if (object != null) {
                     try {
-                        Class innerObjectClass = field.getType();
-                        Method getInnerObject = object.getClass().getMethod("get" + field.getName());
+                        Method getInnerObject = object.getClass().getMethod("get" + capitalizeFirstLetter(field.getName()));
                         innerObject = getInnerObject.invoke(object);//get comp obj-> res
                         innerObjectLabel.setObject(innerObject);
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
@@ -208,7 +215,7 @@ public class DataHandler {
         int prompt = 0;
         if (object != null) {
             Class objectClass = object.getClass();
-            Method getValue = objectClass.getMethod("get" + controlName);
+            Method getValue = objectClass.getMethod("get" + capitalizeFirstLetter(controlName));
             prompt = (int) getValue.invoke(object);
         }
         NewTextField newTextField = new NewTextField(controlName, prompt);
@@ -225,7 +232,7 @@ public class DataHandler {
         String value = "";
         if (object != null) {
             Class objectClass = object.getClass();
-            Method getValue = objectClass.getMethod("get" + controlName);
+            Method getValue = objectClass.getMethod("get" + capitalizeFirstLetter(controlName));
             value = (String) getValue.invoke(object);
         }
         // list of fields-constants declared annotations
@@ -241,11 +248,16 @@ public class DataHandler {
         vbox.getChildren().add(chBox);
     }
 
-    private static void createOrder(Class<? extends Drink> drinkClass, List<IControl> controlsList) {
+    private static void createOrder(Class<? extends Drink> drinkClass, List<IControl> controlsList, Object object) {
         Drink drinkInstance = null;
         try {
-            Constructor constructor = drinkClass.getConstructor();
-            drinkInstance = (Drink) constructor.newInstance();
+            if (object == null) {
+                Constructor constructor = drinkClass.getConstructor();
+                drinkInstance = (Drink) constructor.newInstance();
+            } else {
+                drinkInstance = (Drink) object;
+            }
+
             ArrayList<Method> methodList = new ArrayList<>();
             Class testClass = drinkClass;
             while (testClass != null && testClass != Object.class) {
@@ -255,10 +267,17 @@ public class DataHandler {
 
             for (IControl control : controlsList) {
                 if (control.getClass().equals(NewLabel.class)) { // composition
-                    //Class innerObjectClass = ((NewLabel) control).getObject().getClass();
+                    Object innerInstance = null;
                     Class innerObjectClass = Class.forName(BEANSPACKAGE + capitalizeFirstLetter(control.getName()));
-                    Constructor innerConstructor = innerObjectClass.getConstructor();
-                    Object innerInstance = innerConstructor.newInstance();
+                    if (object == null) {
+
+                        Constructor innerConstructor = innerObjectClass.getConstructor();
+                        innerInstance = innerConstructor.newInstance();
+                    } else {
+                        innerInstance = ((NewLabel) control).getObject();
+                    }
+                    //Class innerObjectClass = ((NewLabel) control).getObject().getClass();
+
                     ArrayList<Method> innerObjectMethodsList = new ArrayList<>();
                     Collections.addAll(innerObjectMethodsList, innerObjectClass.getDeclaredMethods());
                     for (Method method : innerObjectMethodsList) {
@@ -280,16 +299,18 @@ public class DataHandler {
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException | ClassNotFoundException l) {
             System.out.println("Reflection exception!");
         }
-        Order newOrder = new Order(getCurrentDate(), drinkInstance);
-        addOrderToList(orderList, new OrderModel(newOrder));
+        if (object == null) {
+            Order newOrder = new Order(getCurrentDate(), drinkInstance);
+            addOrderToList(orderList, new OrderModel(newOrder));
+        }
     }
 
     private static void addOrderToList(ObservableList<OrderModel> orderList, OrderModel order) {
         orderList.add(order);
     }
 
-    private static Date getCurrentDate() {
-        return new Date();
+    private static LocalDateTime getCurrentDate() {
+        return LocalDateTime.now();
 
     }
 
@@ -298,5 +319,20 @@ public class DataHandler {
             return original;
         }
         return original.substring(0, 1).toUpperCase() + original.substring(1);
+    }
+
+    public static ObservableList<OrderModel> extractOrdersByDate(LocalDate dateTime, ObservableList<OrderModel> orders) {
+        ObservableList<OrderModel> suitableOrders = FXCollections.observableArrayList();
+        orders.forEach(element -> {
+            if (element.getOrderDate().toLocalDate().equals(dateTime)) {
+                suitableOrders.add(element);
+            }
+        });
+        return suitableOrders;
+    }
+
+    public static ObservableList<OrderModel> sortOrderListByDrinkName(ObservableList<OrderModel> orderModelList) {
+        orderModelList.sort(new OrderDrinkComparator());
+        return orderModelList;
     }
 }

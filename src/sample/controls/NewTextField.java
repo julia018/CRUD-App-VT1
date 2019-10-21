@@ -19,13 +19,13 @@ public class NewTextField extends TextField implements IControl {
     }
 
     @Override
-    public Object getControlValue() {
-        return Integer.parseInt(super.getText());
+    public String getControlValue() {
+        return super.getText();
     }
 
     @Override
     public String getName() {
-        return null;
+        return name;
     }
 
     public void setName(String name) {

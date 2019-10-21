@@ -9,12 +9,12 @@ public class HotChocolate extends Drink implements Serializable {
     public HotChocolate() {
     }
 
-    public CocoaPercentage getCocoaPercentage() {
-        return cocoaPercentage;
+    public String getCocoaPercentage() {
+        return cocoaPercentage.toString();
     }
 
-    public void setCocoaPercentage(CocoaPercentage cocoaPercentage) {
-        this.cocoaPercentage = cocoaPercentage;
+    public void setCocoaPercentage(String cocoaPercentage) {
+        this.cocoaPercentage = CocoaPercentage.valueOf(cocoaPercentage);
     }
 
     enum CocoaPercentage {

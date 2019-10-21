@@ -12,20 +12,20 @@ public class Tea extends Drink implements Serializable {
     public Tea() {
     }
 
-    public ColorKind getColorKind() {
-        return colorKind;
+    public String getColorKind() {
+        return colorKind.toString();
     }
 
-    public void setColorKind(ColorKind colorKind) {
-        this.colorKind = colorKind;
+    public void setColorKind(String colorKind) {
+        this.colorKind = ColorKind.valueOf(colorKind);
     }
 
-    public LeafKind getLeafKind() {
-        return leafKind;
+    public String getLeafKind() {
+        return leafKind.toString();
     }
 
-    public void setLeafKind(LeafKind leafKind) {
-        this.leafKind = leafKind;
+    public void setLeafKind(String leafKind) {
+        this.leafKind = LeafKind.valueOf(leafKind);
     }
 
     public Sugar getSugar() {
@@ -36,12 +36,12 @@ public class Tea extends Drink implements Serializable {
         this.sugar = sugar;
     }
 
-    public TradeMark getTradeMark() {
-        return tradeMark;
+    public String getTradeMark() {
+        return tradeMark.toString();
     }
 
-    public void setTradeMark(TradeMark tradeMark) {
-        this.tradeMark = tradeMark;
+    public void setTradeMark(String tradeMark) {
+        this.tradeMark = TradeMark.valueOf(tradeMark);
     }
 
     enum TradeMark {
@@ -60,6 +60,9 @@ public class Tea extends Drink implements Serializable {
         SMALL
     }
 
-
+    @Override
+    public void nullifyInnerObjects() {
+        sugar = null;
+    }
 
 }

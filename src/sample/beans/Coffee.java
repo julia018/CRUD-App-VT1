@@ -17,8 +17,8 @@ public class Coffee extends Drink implements Serializable {
     public Coffee() {
     }
 
-    public Trademark getTrademark() {
-        return trademark;
+    public String getTrademark() {
+        return trademark.toString();
     }
 
     public void setTrademark(String trademark) {
@@ -41,5 +41,9 @@ public class Coffee extends Drink implements Serializable {
         this.sugar = sugar;
     }
 
-
+    @Override
+    public void nullifyInnerObjects() {
+        milk = null;
+        sugar = null;
+    }
 }

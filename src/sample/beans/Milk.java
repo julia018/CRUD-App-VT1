@@ -9,8 +9,8 @@ public class Milk implements Serializable, Composition {
     public Milk() {
     }
 
-    public Origin getOrigin() {
-        return origin;
+    public String getOrigin() {
+        return origin.toString();
     }
 
     public void setOrigin(String origin) {

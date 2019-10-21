@@ -21,20 +21,25 @@ public abstract class Drink implements Serializable {
     public Drink() {
     }
 
-    public Volume getVolume() {
-        return volume;
+    public String getVolume() {
+        return volume.toString();
     }
 
     public void setVolume(String volume) {
         this.volume = Volume.valueOf(volume);
     }
 
-    public Container getContainer() {
-        return container;
+    public String getContainer() {
+        return container.toString();
     }
 
     public void setContainer(String container) {
         this.container = Container.valueOf(container);
+    }
+
+    //method for overriding
+    public void nullifyInnerObjects() {
+        return;
     }
 
 }

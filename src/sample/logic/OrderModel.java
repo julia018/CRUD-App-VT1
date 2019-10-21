@@ -5,12 +5,15 @@ import sample.beans.Order;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class OrderModel {
 
     private Order order;
-    private Date orderDate;
+    private LocalDateTime orderDate;
     private Drink orderDrink;
 
 
@@ -28,11 +31,11 @@ public class OrderModel {
         this.order = order;
     }
 
-    public Date getOrderDate() {
+    public LocalDateTime getOrderDate() {
         return orderDate;
     }
 
-    public void setOrderDate(Date orderDate) {
+    public void setOrderDate(LocalDateTime orderDate) {
         this.orderDate = orderDate;
     }
 
@@ -45,7 +48,7 @@ public class OrderModel {
     }
 
     public String getFormattedDate() {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        return dateFormat.format(orderDate);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss  dd/MM/yyyy");
+        return orderDate.format(formatter);
     }
 }
