@@ -2,6 +2,7 @@ package sample.beans;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class Order implements Serializable {
@@ -22,8 +23,14 @@ public class Order implements Serializable {
         return date;
     }
 
+
     public void setDate(LocalDateTime date) {
         this.date = date;
+    }
+
+    public void setDate(String date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss  dd/MM/yyyy");
+        this.date = LocalDateTime.parse(date);
     }
 
     public Drink getDrink() {
