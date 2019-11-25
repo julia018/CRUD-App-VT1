@@ -22,7 +22,7 @@ public class Main extends Application {
     public static ObservableList<OrderModel> orderList = FXCollections.observableArrayList();
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
         primaryStage.setTitle("COFFEE MACHINE");
         primaryStage.setScene(new Scene(root, 600, 480));
@@ -32,7 +32,7 @@ public class Main extends Application {
                 if (checkStorageFilePresent()) {
                     orderList.addAll(loadPreviousOrderList());
                 } else {
-
+                    generateAlert("Storage file", "Warning", "Application can't find file with previous orders. This info will not be loaded.'");
                 }
             }
         });

@@ -1,7 +1,6 @@
 package sample.logic;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableArray;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -17,6 +16,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import sample.Main;
 import sample.beans.Composition;
 import sample.beans.Drink;
 import sample.beans.Order;
@@ -32,33 +32,39 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
 import static sample.Main.orderList;
 
+/**
+ * Сlass for application's data processing and manipulation (all methods are static!)
+ */
+
 public class DataHandler {
 
     private static final int WIDTH = 400;
-    private static final int HEIGHT = 500;
     private static final int TOP = 10;
     private static final int RIGHT = 10;
     private static final int BOTTOM = 10;
     private static final int LEFT = 10;
     private static final int SPACING = 5;
 
+    /**
+     * String representation of package where application's beans are kept
+     */
     private static final String BEANSPACKAGE = "sample.beans.";
-    private static final String STORAGEFILE = "res/OrderStorage.txt";
-    //private static final String STORAGEFILEN = "res/OrderStorageN.txt";
 
-    public static <T> ArrayList<Class<? extends T>> getDrinksNames(String pkgname, Class<T> T) {
+    /**
+     * Name of textfile for storing application's data(order list)
+     */
+    private static final String STORAGEFILE = "OrderStorage.txt";
+
+    public static <T> ArrayList<Class<? extends T>> getDrinksNames(String pkgname, Class<T> T) throws Exception {
         ArrayList<Class<? extends T>> classes = new ArrayList<>();
         // Get a File object for the package
-        File directory = null;
-        String fullPath;
+        File directory;
         String relPath = pkgname.replace('.', '/');
         URL resource = ClassLoader.getSystemClassLoader().getResource(relPath);
         if (resource == null) {
@@ -74,11 +80,11 @@ public class DataHandler {
         if (directory != null && directory.exists()) {
             // Get the list of the files contained in the package
             String[] files = directory.list();
-            for (int i = 0; i < files.length; i++) {
+            for (String file : files) {
                 // we are only interested in .class files
-                if (files[i].endsWith(".class")) {
+                if (file.endsWith(".class")) {
                     // removes the .class extension
-                    String className = pkgname + '.' + files[i].substring(0, files[i].length() - 6);
+                    String className = pkgname + '.' + file.substring(0, file.length() - 6);
                     try {
                         try {
                             if (T.isAssignableFrom(Class.forName(className)) && !className.equals(T.getName()))
@@ -87,7 +93,7 @@ public class DataHandler {
                             throw new Exception("Ошибка загрузки напитков.");
                         }
                     } catch (Exception e) {
-
+                        throw new Exception();
                     }
                 }
             }
@@ -95,6 +101,12 @@ public class DataHandler {
         return classes;
     }
 
+    /**
+     * Retrieves list of class fields
+     *
+     * @param currentClass class for getting list with fields of passed class
+     * @return ArrayList with fields of passed class
+     */
     private static ArrayList<Field> getClassFields(Class currentClass) {
         ArrayList<Field> classFields = new ArrayList<>();
         while (currentClass != null && currentClass != Object.class) {
@@ -105,6 +117,13 @@ public class DataHandler {
         return classFields;
     }
 
+    /**
+     * Creates Stage object by passed class name and object for editing or creating(default controls filling) object
+     *
+     * @param className
+     * @param object    object for editing; if null all controls will be default
+     * @return Stage for editing/creating order
+     */
     public static Stage generateOrderForm(String className, Object object) {
         Stage stage = new Stage();
         try {
@@ -115,8 +134,8 @@ public class DataHandler {
             vb.setSpacing(SPACING);
             vb.setPadding(new Insets(TOP, RIGHT, BOTTOM, LEFT));
 
-
             stage.initModality(Modality.APPLICATION_MODAL);
+            //title will show chosen drink
             stage.setTitle("ORDER -> " + className);
             stage.sizeToScene();
 
@@ -154,6 +173,13 @@ public class DataHandler {
         return stage;
     }
 
+    /**
+     * Generates controls for passed object(generates visual representation) and adds them to container
+     * @param vbox VBox container where we will put all generated controls
+     * @param controlList list of controls where we will store all controls that can give value
+     * @param fieldList list of object fields for generating controls depending it
+     * @param object object for filling value controls with its properties
+     */
     private static void generateControls(VBox vbox, List<IControl> controlList, ArrayList<Field> fieldList, Object object) {
         fieldList.forEach(field -> {
             if (field.getType().equals(int.class)) {
@@ -210,12 +236,22 @@ public class DataHandler {
 
     }
 
+    /**
+     * Generates TextField control for editing object's String field
+     * @param field object's field with String type
+     * @param vbox container for controls
+     * @param object object for editing
+     * @param controlList list of controls containing value
+     * @throws NoSuchMethodException method-getter not found (reflection) while trying to get objects current field's value
+     * @throws InvocationTargetException invoking method for getting object's current field value (reflection)
+     * @throws IllegalAccessException invoking method for getting object's current field value
+     */
     private static void generateTextField(Field field, VBox vbox, Object object, List<IControl> controlList) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         String controlName = field.getName();
         Label controlLabel = new Label(controlName);
         vbox.getChildren().add(controlLabel);
         int prompt = 0;
-        if (object != null) {
+        if (object != null) { // creating == default filling
             Class objectClass = object.getClass();
             Method getValue = objectClass.getMethod("get" + capitalizeFirstLetter(controlName));
             prompt = (int) getValue.invoke(object);
@@ -225,6 +261,16 @@ public class DataHandler {
         controlList.add(newTextField);
     }
 
+    /**
+     * Generates ComboBox control for editing object's String field
+     * @param field object's enum field
+     * @param vbox container for controls
+     * @param object object for editing
+     * @param controlList list of controls containing value
+     * @throws NoSuchMethodException method-getter not found (reflection) while trying to get objects current field's value
+     * @throws InvocationTargetException invoking method for getting object's current field value (reflection)
+     * @throws IllegalAccessException invoking method for getting object's current field value
+     */
     private static void generateComboBox(Field field, VBox vbox, Object object, List<IControl> controlList) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         String controlName = field.getName();
         Label controlLabel = new Label(controlName);
@@ -250,6 +296,12 @@ public class DataHandler {
         vbox.getChildren().add(chBox);
     }
 
+    /**
+     * Creates new order by passed object(editing)/creates new object(creating) by passed control list and adds order to current list of orders
+     * @param drinkClass class of order's drink
+     * @param controlsList list of value controls for object's creating/editing
+     * @param object passed object(if creating it is null)
+     */
     private static void createOrder(Class<? extends Drink> drinkClass, List<IControl> controlsList, Object object) {
         Drink drinkInstance = null;
         try {
@@ -307,6 +359,11 @@ public class DataHandler {
         }
     }
 
+    /**
+     * Adds OrderModel(@see sample.logic#OrderModel) object to list of orders for representing in tableview
+     * @param orderList list of orders(OrderModel objects)
+     * @param order order to add
+     */
     private static void addOrderToList(ObservableList<OrderModel> orderList, OrderModel order) {
         orderList.add(order);
     }
@@ -316,6 +373,11 @@ public class DataHandler {
 
     }
 
+    /**
+     * Converts the 1st letter to uppercase
+     * @param original string to modify
+     * @return passed string where 1st letter is in uppercase
+     */
     private static String capitalizeFirstLetter(String original) {
         if (original == null || original.length() == 0) {
             return original;
@@ -338,17 +400,16 @@ public class DataHandler {
         return orderModelList;
     }
 
-    public static void getPreviousOrderList() {
-        if (isStorageFilePresent()) {
-
-        } else {
-
-        }
-    }
-
     public static boolean isStorageFilePresent() {
-        File file = new File(STORAGEFILE);
-        return file.exists();
+        URL textFileResource = Main.class.getResource(STORAGEFILE);
+        File storageFile;
+        try {
+            storageFile = new File(textFileResource.toURI());
+        } catch (URISyntaxException e) {
+            // there are troubles with storage file, so we will
+            return false;
+        }
+        return storageFile.exists();
     }
 
     public static boolean checkStorageFilePresent() {
@@ -370,16 +431,18 @@ public class DataHandler {
 
     public static void saveCurrentOrderList(ObservableList<OrderModel> orderList) {
         if (!isStorageFilePresent()) {
+            generateAlert("Warning", "Cant find existing storage file...", "New storage file will be created.");
             //we must create new file for storing list
-            File fileToWrite = new File(STORAGEFILE);
+
             try {
+                File fileToWrite = new File(Main.class.getResource(STORAGEFILE).toURI());
                 fileToWrite.createNewFile();
-            } catch (IOException ex) {
+            } catch (IOException | URISyntaxException ex) {
                 generateAlert("System error", "Order storage file can't be created.", "Changes can't be saved...").show();
                 return;
             }
         }
-        try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(STORAGEFILE), "UTF-8")) {
+        try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(new File(Main.class.getResource(STORAGEFILE).toURI())), "UTF-8")) {
             orderList.forEach(orderModel -> {
                 try {
                     writeObject(orderModel.getOrder(), outputStreamWriter);
@@ -393,9 +456,11 @@ public class DataHandler {
                     e.printStackTrace();
                 }
             });
+        } catch (URISyntaxException u) {
+            generateAlert("", "", "URI");
         } catch (IOException e) {
             //nothing to do: there was checking for file existance and UTF-8 is standart charset
-            generateAlert("Warning", "Informatiom storage", "Could not find storage file. Changed data will not be saved.").show();
+            generateAlert("Warning", "Information storage", "Could not find storage file. Changed data will not be saved.").show();
         }
     }
 
@@ -424,9 +489,6 @@ public class DataHandler {
                 resultString.append(serializeInnerObject(objectField, o)).append(';');
             } else {
                 if (Drink.class.isAssignableFrom(objectField.getType())) {
-                    /*Method getDrinkObject = o.getClass().getMethod("get"+capitalizeFirstLetter(objectField.getName()));
-                    Drink drink = (Drink) getDrinkObject.invoke(o);
-                    resultString.append(serializeObject(drink)).append(';');*/
                     resultString.append(serializeInnerObject(objectField, o)).append(';');
                 } else {
                     for (Method objectMethod : mainMethodList) {
@@ -451,48 +513,30 @@ public class DataHandler {
 
     public static ObservableList<OrderModel> loadPreviousOrderList() {
         ObservableList<OrderModel> obj_list = FXCollections.observableArrayList();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(STORAGEFILE)))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(Main.class.getResourceAsStream(STORAGEFILE)))) {
             String strLine;
             while ((strLine = br.readLine()) != null) {
                 try {
-                    Order obj = (Order) deserializeObject(strLine);
-                    System.out.println(obj.getDrink().getContainer());
-                    obj_list.add(new OrderModel(obj));
-                    //br.close();
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
+                    Order readObject = (Order) deserializeObject(strLine);
+                    obj_list.add(new OrderModel(readObject));
+                } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                    throw new IOException();// throw exception further
                 }
             }
         } catch (IOException e) {
-            //System.out.println("Fault caused while opening file!");
-            e.printStackTrace();
+            generateAlert("Warning", "Something went wrong...", "Could not load a list of previous orders .").show();
         }
         return obj_list;
     }
 
     private static Object deserializeObject(String objectInString) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         int i = 1;
-        Object resultObject;
-        StringBuilder mainClassName = new StringBuilder();
+        String mainClassName = extractClassName(i, objectInString);
+        i += mainClassName.length() + 1;
         ArrayList<Method> methodList = new ArrayList<>();
         HashMap<String, String> mainObjFields = new HashMap<>();
-        while (!(objectInString.charAt(i) == ';')) {
-            mainClassName.append(objectInString.charAt(i));
-            i++;
-        }
-        i++;
-        resultObject = createObject(mainClassName.toString());
-        Class mainClass = Class.forName(mainClassName.toString());
-        mainClass.cast(resultObject);
-        Class a = mainClass;
+        Object resultObject = createObject(mainClassName);
+        Class a = Class.forName(mainClassName);
         while (a != null && a != Object.class) {
             Collections.addAll(methodList, a.getDeclaredMethods());
             a = a.getSuperclass();
@@ -509,15 +553,11 @@ public class DataHandler {
             if (objectInString.charAt(i) == '{') {
                 i++;
                 Object drinkObject;
-                StringBuilder drinkClassName = new StringBuilder();
+                String drinkClassName = extractClassName(i, objectInString);
+                i += drinkClassName.length() + 1;
                 ArrayList<Method> drinkMethodList = new ArrayList<>();
                 HashMap<String, String> drinkObjFields = new HashMap<>();
-                while (!(objectInString.charAt(i) == ';')) {
-                    drinkClassName.append(objectInString.charAt(i));
-                    i++;
-                }
-                i++;
-                drinkObject = createObject(drinkClassName.toString());
+                drinkObject = createObject(drinkClassName);
                 Class a1 = drinkObject.getClass();
                 while (a1 != null && a1 != Object.class) {
                     Collections.addAll(drinkMethodList, a1.getDeclaredMethods());
@@ -534,14 +574,10 @@ public class DataHandler {
                     //object in composition 2
                     if (objectInString.charAt(i) == '{') {
                         i++;
-                        StringBuilder className = new StringBuilder();
-                        while (!(objectInString.charAt(i) == ';')) {
-                            className.append(objectInString.charAt(i));
-                            i++;
-                        }
-                        i++;
-                        Object compObject = createObject(className.toString());
-                        Class<?> compClass = Class.forName(className.toString());
+                        String className = extractClassName(i, objectInString);
+                        i += className.length() + 1;
+                        Object compObject = createObject(className);
+                        Class compClass = Class.forName(className);
                         ArrayList<Method> compMethodsList = new ArrayList<>();
                         Collections.addAll(compMethodsList, compClass.getDeclaredMethods());
                         HashMap<String, String> objFields = new HashMap<>();
@@ -594,9 +630,17 @@ public class DataHandler {
                 mainObjFields.put(key.toString(), value.toString());
             }
         }
-        i++;
         setObjectFields(methodList, mainObjFields.entrySet(), resultObject);
         return resultObject;
+    }
+
+    private static String extractClassName(int i, String objectInString) {
+        StringBuilder objectClassName = new StringBuilder();
+        while (!(objectInString.charAt(i) == ';')) {
+            objectClassName.append(objectInString.charAt(i));
+            i++;
+        }
+        return objectClassName.toString();
     }
 
 
@@ -620,7 +664,7 @@ public class DataHandler {
 
     private static Object createObject(String className) throws IllegalAccessException, InvocationTargetException, InstantiationException, ClassNotFoundException, NoSuchMethodException {
         Class clazz = Class.forName(className);
-        Constructor<?> constructor = clazz.getConstructor();
+        Constructor constructor = clazz.getConstructor();
         Object newObject = constructor.newInstance();
         clazz.cast(newObject);
         return newObject;

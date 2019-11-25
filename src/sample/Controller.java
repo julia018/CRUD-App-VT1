@@ -52,7 +52,13 @@ public class Controller {
             orderTableView.refresh();
             orderTableView.setItems(orderList);
         });
-        ArrayList<Class<? extends Drink>> availableDrinks = getDrinksNames("sample.beans", Drink.class);
+        ArrayList<Class<? extends Drink>> availableDrinks = null;
+        try {
+            availableDrinks = getDrinksNames("sample.beans", Drink.class);
+        } catch (Exception e) {
+            generateAlert("Warning", "Drink types' loading error", "Application can't get available drink types, sorry...").showAndWait();
+            System.exit(-1);
+        }
         availableDrinks.forEach(aClass -> drinksComboBox.getItems().add(aClass.getSimpleName()));
         drinksComboBox.getSelectionModel().select(0);
 
